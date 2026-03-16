@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>DECRYPTOR — The Ultimate Logic Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT VARIABLES & RESET
+═══════════════════════════════════════════════ */
+:root {
+  --bg:       #050505;
+  --panel:    #0c0c0c;
+  --panel2:   #111;
+  --border:   #1e1e1e;
+  --green:    #00ff41;
+  --cyan:     #00ffff;
+  --red:      #ff003c;
+  --orange:   #ff9500;
+  --yellow:   #ffe600;
+  --dim:      #3a3a3a;
+  --dim2:     #555;
+  --text:     #d0d0d0;
+  --font-m:   'Share Tech Mono', monospace;
+  --font-d:   'Orbitron', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-m);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 2px,
+    rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ═══════════════════════════════════════════════
+   START SCREEN
+═══════════════════════════════════════════════ */
+#start-screen {
+  position: fixed; inset: 0;
+  background: #000;
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+}
+#start-screen.hide {
+  animation: startFadeOut 0.7s forwards;
+  pointer-events: none;
+}
+@keyframes startFadeOut {
+  to { opacity: 0; transform: scale(1.04); }
+}
+
+/* animated grid background */
+.start-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,65,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridScroll 8s linear infinite;
+}
+@keyframes gridScroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(40px); }
+}
+
+.start-corner {
+  position: absolute;
+  width: 60px; height: 60px;
+  border-color: var(--cyan);
+  border-style: solid;
+  opacity: 0.5;
+}
+.start-corner.tl { top: 24px; left: 24px; border-width: 2px 0 0 2px; }
+.start-corner.tr { top: 24px; right: 24px; border-width: 2px 2px 0 0; }
+.start-corner.bl { bottom: 24px; left: 24px; border-width: 0 0 2px 2px; }
+.start-corner.br { bottom: 24px; right: 24px; border-width: 0 2px 2px 0; }
+
+.start-badge {
+  font-family: var(--font-m);
+  font-size: 0.65rem;
+  letter-spacing: 5px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: fadeUp 0.6s 0.3s forwards;
+}
+.start-title {
+  font-family: var(--font-d);
+  font-size: clamp(2.2rem, 10vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--green);
+  text-shadow: 0 0 30px var(--green), 0 0 60px rgba(0,255,65,0.3);
+  text-transform: uppercase;
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 0.6s 0.5s forwards;
+  line-height: 1.1;
+}
+.start-sub {
+  font-family: var(--font-m);
+  font-size: clamp(0.7rem, 2.5vw, 1rem);
+  letter-spacing: 4px;
+  color: var(--yellow);
+  text-transform: uppercase;
+  margin-top: 12px;
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 0.6s 0.7s forwards;
+}
+.start-divider {
+  width: 200px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  margin: 28px 0;
+  opacity: 0;
+  animation: fadeUp 0.5s 0.9s forwards;
+}
+.start-desc {
+  font-family: var(--font-m);
+  font-size: 0.82rem;
+  color: var(--dim2);
+  text-align: center;
+  letter-spacing: 1px;
+  max-width: 380px;
+  line-height: 1.8;
+  opacity: 0;
+  animation: fadeUp 0.5s 1.0s forwards;
+  margin-bottom: 40px;
+}
+.start-btn {
+  font-family: var(--font-d);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  padding: 18px 52px;
+  background: transparent;
+  border: 2px solid var(--green);
+  color: var(--green);
+  cursor: pointer;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeUp 0.5s 1.2s forwards;
+  transition: color 0.2s, box-shadow 0.2s;
+  min-width: 240px;
+  touch-action: manipulation;
+}
+.start-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--green);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: -1;
+}
+.start-btn:hover::before,
+.start-btn:active::before { transform: translateX(0); }
+.start-btn:hover,
+.start-btn:active {
+  color: #000;
+  box-shadow: 0 0 30px var(--green), 0 0 60px rgba(0,255,65,0.3);
+}
+.start-btn-pulse {
+  position: absolute; inset: -4px;
+  border: 1px solid rgba(0,255,65,0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.04); opacity: 0; }
+}
+.start-version {
+  position: absolute;
+  bottom: 20px; right: 24px;
+  font-size: 0.6rem;
+  color: var(--dim);
+  letter-spacing: 2px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════
+   GAME SCREEN
+═══════════════════════════════════════════════ */
+#game-screen {
+  display: none;
+  opacity: 0;
+  animation: gameReveal 0.8s forwards;
+  min-height: 100vh;
+  padding-bottom: 120px;
+}
+#game-screen.active {
+  display: block;
+}
+@keyframes gameReveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* HEADER */
+.g-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 100;
+}
+.g-header-title {
+  font-family: var(--font-d);
+  font-size: clamp(0.85rem, 3vw, 1.2rem);
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--green);
+  text-shadow: 0 0 14px rgba(0,255,65,0.5);
+  text-transform: uppercase;
+}
+.g-header-sub {
+  font-size: 0.6rem;
+  letter-spacing: 3px;
+  color: var(--yellow);
+  text-transform: uppercase;
+  display: block;
+  margin-top: 2px;
+}
+.g-header-btns {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.hdr-btn {
+  font-family: var(--font-m);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.18s;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+.hdr-btn:hover, .hdr-btn:active { background: var(--cyan); color: #000; }
+
+/* MAIN CONTENT */
+.g-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ═══════════════════════════════════════════════
+   HERO: INJECT SEQUENCE (main big box)
+═══════════════════════════════════════════════ */
+.inject-hero {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--cyan);
+  border-radius: 4px;
+  padding: 24px 20px 20px;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,255,255,0.04), inset 0 0 40px rgba(0,255,255,0.01);
+}
+.inject-hero::before {
+  content: '// INJECT SEQUENCE';
+  position: absolute;
+  top: -1px; left: 20px;
+  background: var(--cyan);
+  color: #000;
+  font-family: var(--font-m);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  padding: 2px 10px;
+  font-weight: 700;
+}
+
+/* Digit display */
+.digit-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 16px 0 20px;
+  cursor: text;
+}
+.digit-slot {
+  flex: 1;
+  max-width: 80px;
+  height: 84px;
+  border: 2px solid var(--dim);
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-d);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--cyan);
+  text-shadow: 0 0 16px var(--cyan);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  border-radius: 3px;
+  position: relative;
+}
+.digit-slot.active {
+  border-color: var(--cyan);
+  box-shadow: 0 0 14px rgba(0,255,255,0.25), inset 0 0 8px rgba(0,255,255,0.04);
+}
+.digit-slot.active::after {
+  content: '';
+  position: absolute;
+  bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 2px;
+  background: var(--cyan);
+  animation: cur 0.8s step-end infinite;
+}
+@keyframes cur { 50% { opacity: 0; } }
+.digit-slot.empty { color: var(--dim); text-shadow: none; font-size: 1.5rem; }
+.digit-slot.correct-pos { border-color: var(--green); color: var(--green); text-shadow: 0 0 12px var(--green); }
+.digit-slot.correct-num { border-color: var(--orange); color: var(--orange); text-shadow: 0 0 12px var(--orange); }
+
+.hidden-inp {
+  position: absolute; opacity: 0; width: 1px; height: 1px;
+  pointer-events: none; top: 0; left: 0;
+}
+
+/* Status row */
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.attempt-badge {
+  font-family: var(--font-m);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--dim2);
+}
+.attempt-badge strong {
+  color: var(--green);
+  font-size: 1.1rem;
+  text-shadow: 0 0 8px var(--green);
+}
+
+/* Action buttons */
+.action-row {
+  display: flex; gap: 10px;
+}
+.btn-inject {
+  flex: 2;
+  font-family: var(--font-m);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 14px 10px;
+  background: transparent;
+  border: 2px solid var(--green);
+  color: var(--green);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+  border-radius: 3px;
+}
+.btn-inject::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--green);
+  transform: translateY(100%);
+  transition: transform 0.2s ease;
+  z-index: 0;
+}
+.btn-inject span { position: relative; z-index: 1; }
+.btn-inject:hover::before,
+.btn-inject:active::before { transform: translateY(0); }
+.btn-inject:hover span,
+.btn-inject:active span { color: #000; }
+
+.btn-terminate {
+  flex: 1;
+  font-family: var(--font-m);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 14px 8px;
+  background: transparent;
+  border: 2px solid var(--red);
+  color: var(--red);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.18s;
+  touch-action: manipulation;
+  border-radius: 3px;
+}
+.btn-terminate:hover, .btn-terminate:active {
+  background: var(--red); color: #000;
+  box-shadow: 0 0 18px rgba(255,0,60,0.4);
+}
+
+/* ═══════════════════════════════════════════════
+   COMPACT ROW: SCRATCHPAD + NUMPAD
+═══════════════════════════════════════════════ */
+.compact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.compact-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+}
+.compact-label {
+  font-family: var(--font-m);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.compact-box.scratch-box .compact-label { color: var(--cyan); }
+.compact-box.numpad-box .compact-label { color: var(--green); }
+
+/* SCRATCHPAD small boxes */
+.scratch-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.scratch-n {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: #000;
+  border: 1px solid var(--dim);
+  border-radius: 3px;
+  font-family: var(--font-m);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.12s;
+  position: relative;
+  user-select: none;
+  overflow: hidden;
+  touch-action: manipulation;
+  min-height: 30px;
+}
+.scratch-n:hover { border-color: var(--cyan); color: var(--cyan); }
+.scratch-n.crossed {
+  color: #250008;
+  background: rgba(255,0,60,0.07);
+  border-color: rgba(255,0,60,0.4);
+}
+.scratch-n.crossed::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 6%; width: 88%; height: 1.5px;
+  background: var(--red);
+  transform: rotate(-15deg);
+  box-shadow: 0 0 4px var(--red);
+}
+.scratch-hint {
+  font-size: 0.6rem;
+  color: var(--orange);
+  text-align: center;
+  margin-top: 7px;
+  letter-spacing: 1px;
+  line-height: 1.5;
+}
+
+/* NUMPAD small boxes */
+.numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.np-key {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: #000;
+  border: 1px solid var(--dim);
+  border-radius: 3px;
+  font-family: var(--font-m);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.12s;
+  touch-action: manipulation;
+  min-height: 30px;
+}
+.np-key:hover, .np-key:active {
+  border-color: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 8px rgba(0,255,65,0.2);
+  transform: scale(0.95);
+}
+.np-del {
+  grid-column: span 2;
+  aspect-ratio: auto;
+  font-size: 0.62rem;
+  letter-spacing: 1px;
+  color: var(--dim2);
+  padding: 6px 4px;
+}
+.np-del:hover, .np-del:active {
+  border-color: var(--red); color: var(--red);
+  box-shadow: 0 0 8px rgba(255,0,60,0.2);
+  transform: scale(0.97);
+}
+
+/* ═══════════════════════════════════════════════
+   RESULT BOX
+═══════════════════════════════════════════════ */
+.result-box {
+  border-radius: 4px;
+  padding: 18px 20px;
+  animation: fadeIn 0.4s ease;
+}
+.result-box.win {
+  background: rgba(0,255,65,0.05);
+  border: 1px solid var(--green);
+  box-shadow: 0 0 24px rgba(0,255,65,0.12);
+}
+.result-box.lose {
+  background: rgba(255,0,60,0.05);
+  border: 1px solid var(--red);
+  box-shadow: 0 0 24px rgba(255,0,60,0.12);
+}
+.result-box h2 {
+  font-family: var(--font-d);
+  font-size: 0.95rem;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.result-box.win h2 { color: var(--green); text-shadow: 0 0 12px var(--green); }
+.result-box.lose h2 { color: var(--red); text-shadow: 0 0 12px var(--red); }
+.result-box p { font-size: 0.85rem; line-height: 1.8; }
+.code-big {
+  font-family: var(--font-d);
+  font-size: 2rem;
+  letter-spacing: 10px;
+  margin: 10px 0;
+  font-weight: 700;
+}
+.result-box.win .code-big { color: var(--green); text-shadow: 0 0 20px var(--green); }
+.result-box.lose .code-big { color: var(--red); text-shadow: 0 0 20px var(--red); }
+
+/* ═══════════════════════════════════════════════
+   HISTORY LOG
+═══════════════════════════════════════════════ */
+.history-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+.history-panel .panel-label {
+  font-family: var(--font-m);
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+#history-log {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#history-log::-webkit-scrollbar { width: 3px; }
+#history-log::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+.hist-empty {
+  font-size: 0.8rem;
+  color: var(--dim);
+  text-align: center;
+  padding: 24px 0;
+  letter-spacing: 2px;
+}
+.guess-card {
+  background: #000;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan);
+  border-radius: 3px;
+  padding: 12px 14px;
+  animation: fadeIn 0.3s ease;
+}
+.gc-head {
+  font-family: var(--font-m);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.gc-num { color: var(--green); font-size: 0.82rem; margin: 3px 0; }
+.gc-pos { color: var(--cyan); font-size: 0.82rem; margin: 3px 0; }
+.gc-summary {
+  color: var(--green);
+  font-style: italic;
+  font-size: 0.75rem;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 7px;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════
+   PAST GAMES
+═══════════════════════════════════════════════ */
+.past-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+.log-details summary {
+  font-family: var(--font-m);
+  font-size: 0.72rem;
+  letter-spacing: 3px;
+  color: var(--yellow);
+  cursor: pointer;
+  list-style: none;
+  text-transform: uppercase;
+  user-select: none;
+}
+.log-details summary::-webkit-details-marker { display: none; }
+.log-details summary::before { content: '▶ '; font-size: 0.6rem; }
+.log-details[open] summary::before { content: '▼ '; }
+#log-list {
+  margin-top: 10px;
+  max-height: 140px;
+  overflow-y: auto;
+  font-size: 0.72rem;
+  line-height: 2;
+}
+#log-list::-webkit-scrollbar { width: 3px; }
+#log-list::-webkit-scrollbar-thumb { background: var(--yellow); border-radius: 2px; }
+.log-win  { color: var(--green); }
+.log-lose { color: var(--red); }
+.log-empty-msg { color: var(--dim); }
+
+/* ═══════════════════════════════════════════════
+   FLOATING MINI HISTORY
+═══════════════════════════════════════════════ */
+#mini-hist {
+  position: fixed;
+  bottom: 16px; right: 16px;
+  width: min(290px, calc(100vw - 32px));
+  background: rgba(5,5,5,0.95);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--red);
+  border-radius: 4px;
+  padding: 13px 15px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: none;
+  z-index: 200;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+#mini-hist::-webkit-scrollbar { width: 2px; }
+#mini-hist::-webkit-scrollbar-thumb { background: var(--red); }
+#mini-hist h4 {
+  font-family: var(--font-m);
+  font-size: 0.68rem;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 9px;
+}
+.mini-line {
+  font-size: 0.82rem;
+  color: var(--text);
+  padding: 4px 0;
+  border-bottom: 1px solid #1a1a1a;
+  line-height: 1.7;
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT SEQUENCE (within game screen)
+═══════════════════════════════════════════════ */
+#boot-screen {
+  position: fixed; inset: 0;
+  background: #000;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(30px, 8vw, 80px);
+  font-size: clamp(12px, 2.5vw, 15px);
+}
+#boot-screen.hide { display: none; }
+.boot-line {
+  color: var(--green);
+  opacity: 0;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  transition: opacity 0.1s;
+}
+.boot-line.show { opacity: 1; }
+.boot-cur {
+  display: inline-block;
+  width: 10px; height: 14px;
+  background: var(--green);
+  animation: blink 0.6s step-end infinite;
+  vertical-align: bottom;
+  margin-left: 3px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ═══════════════════════════════════════════════
+   MANUAL MODAL
+═══════════════════════════════════════════════ */
+#modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#modal-overlay.open { display: flex; }
+.modal-box {
+  background: #0a0a0a;
+  border: 1px solid var(--cyan);
+  box-shadow: 0 0 40px rgba(0,255,255,0.12);
+  border-radius: 4px;
+  padding: clamp(20px, 5vw, 36px);
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-box::-webkit-scrollbar { width: 3px; }
+.modal-box::-webkit-scrollbar-thumb { background: var(--cyan); }
+.modal-close {
+  position: absolute; top: 12px; right: 14px;
+  background: none; border: none;
+  color: var(--dim); font-size: 1.4rem;
+  cursor: pointer; line-height: 1;
+  transition: color 0.15s;
+  touch-action: manipulation;
+}
+.modal-close:hover { color: var(--cyan); }
+.modal-box h2 {
+  font-family: var(--font-d);
+  font-size: 0.9rem; letter-spacing: 4px;
+  color: var(--cyan); text-transform: uppercase;
+  margin-bottom: 18px;
+  text-shadow: 0 0 10px var(--cyan);
+}
+.modal-box p {
+  font-size: 0.82rem;
+  line-height: 1.85;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.hl-g { color: var(--green); font-weight: 700; }
+.hl-c { color: var(--cyan); font-weight: 700; }
+.hl-r { color: var(--red); font-weight: 700; }
+.hl-o { color: var(--orange); font-weight: 700; }
+.ex-block {
+  background: #000;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--green);
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-size: 0.78rem;
+  line-height: 1.9;
+}
+.modal-section-title {
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--orange);
+  text-transform: uppercase;
+  margin: 16px 0 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+/* UTILITY */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     START SCREEN
+════════════════════════════════════════════ -->
+<div id="start-screen">
+  <div class="start-bg"></div>
+  <div class="start-corner tl"></div>
+  <div class="start-corner tr"></div>
+  <div class="start-corner bl"></div>
+  <div class="start-corner br"></div>
+
+  <div class="start-badge">// System Ready — Awaiting Authorization</div>
+  <div class="start-title">Decryptor</div>
+  <div class="start-sub">The Ultimate Logic Challenge</div>
+  <div class="start-divider"></div>
+  <div class="start-desc">
+    A 4-digit encrypted code has been generated.<br/>
+    Use logic, deduction, and elimination to crack it.<br/>
+    No repeats. First digit is never zero.
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startGame()">
+    <div class="start-btn-pulse"></div>
+    <span>&gt; Initialize_Session</span>
+  </button>
+
+  <div class="start-version">DECRYPTOR v2.0 // SECURE CHANNEL</div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     BOOT SEQUENCE
+════════════════════════════════════════════ -->
+<div id="boot-screen" class="hide">
+  <div id="boot-lines"></div>
+  <span class="boot-cur"></span>
+</div>
+
+<!-- ════════════════════════════════════════════
+     GAME SCREEN
+════════════════════════════════════════════ -->
+<div id="game-screen">
+
+  <!-- STICKY HEADER -->
+  <div class="g-header">
+    <div>
+      <div class="g-header-title">Decryptor</div>
+      <span class="g-header-sub">The Ultimate Logic Challenge</span>
+    </div>
+    <div class="g-header-btns">
+      <button class="hdr-btn" onclick="openManual()">[Read_Manual]</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="g-content">
+
+    <!-- HERO: INJECT SEQUENCE -->
+    <div class="inject-hero">
+      <div class="digit-row" id="digit-row" onclick="focusHidden()">
+        <div class="digit-slot empty" id="ds0">_</div>
+        <div class="digit-slot empty" id="ds1">_</div>
+        <div class="digit-slot empty" id="ds2">_</div>
+        <div class="digit-slot empty" id="ds3">_</div>
+      </div>
+      <input id="hidden-inp" class="hidden-inp" type="tel" maxlength="4" autocomplete="off" inputmode="numeric"/>
+
+      <div class="status-row">
+        <div class="attempt-badge">ATTEMPTS: <strong id="atc">0</strong></div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-inject" onclick="submitGuess()">
+          <span>&gt; Inject_Code</span>
+        </button>
+        <button class="btn-terminate" onclick="terminate()">&gt; Terminate</button>
+      </div>
+    </div>
+
+    <!-- RESULT AREA -->
+    <div id="result-area"></div>
+
+    <!-- COMPACT: SCRATCHPAD + NUMPAD -->
+    <div class="compact-row">
+
+      <!-- SCRATCHPAD -->
+      <div class="compact-box scratch-box">
+        <div class="compact-label">Numbers for Reference</div>
+        <div class="scratch-grid" id="scratch-grid"></div>
+        <div class="scratch-hint">↑ Click to eliminate<br/>suspected digits</div>
+      </div>
+
+      <!-- NUMPAD -->
+      <div class="compact-box numpad-box">
+        <div class="compact-label">Numpad</div>
+        <div class="numpad-grid" id="numpad-grid"></div>
+      </div>
+
+    </div>
+
+    <!-- HISTORY LOG -->
+    <div class="history-panel">
+      <div class="panel-label">// Attempt Log</div>
+      <div id="history-log">
+        <div class="hist-empty" id="hist-empty">&gt; Awaiting first sequence injection…</div>
+      </div>
+    </div>
+
+    <!-- PAST GAMES -->
+    <div class="past-panel">
+      <details class="log-details" id="log-details">
+        <summary>Session Archive — Log History</summary>
+        <div id="log-list">
+          <span class="log-empty-msg">&gt; no sessions recorded</span>
+        </div>
+      </details>
+    </div>
+
+  </div><!-- /g-content -->
+
+  <div style="text-align:center;padding:18px 16px 28px;font-family:var(--font-m);font-size:0.6rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase;">
+    DECRYPTOR v2.0 &nbsp;//&nbsp; SECURE CHANNEL
+  </div>
+
+</div><!-- /game-screen -->
+
+<!-- MINI HISTORY -->
+<div id="mini-hist">
+  <h4>// Live Feed</h4>
+  <div id="mini-items"></div>
+</div>
+
+<!-- MANUAL MODAL -->
+<div id="modal-overlay" onclick="handleOverlay(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeManual()">&#x2715;</button>
+    <h2>[Read_Manual]</h2>
+
+    <p>DECRYPTOR generates a secret <span class="hl-g">4-digit code</span>. Your objective: crack it through logical deduction before giving up.</p>
+
+    <div class="modal-section-title">// Constraints</div>
+    <p>All digits must be <span class="hl-c">unique</span>. The <span class="hl-r">first digit cannot be 0</span>.</p>
+
+    <div class="modal-section-title">// Feedback System</div>
+    <p>Each valid guess returns two clues:</p>
+    <div class="ex-block">
+      <span class="hl-g">Correct Number</span> — how many digits exist anywhere in the code.<br/>
+      <span class="hl-c">Position</span> — how many digits are in the exact correct slot.
+    </div>
+
+    <div class="modal-section-title">// Example</div>
+    <p>Code = <span class="hl-g">5234</span> &nbsp;|&nbsp; Guess = <span class="hl-c">4278</span></p>
+    <div class="ex-block">
+      <span class="hl-g">4</span> and <span class="hl-g">2</span> are in the code → Correct Number: <span class="hl-g">2</span><br/>
+      Only <span class="hl-c">2</span> is in the right spot → Position: <span class="hl-c">1</span>
+    </div>
+
+    <div class="modal-section-title">// Scratchpad</div>
+    <p>Use the <span class="hl-c">Numbers for Reference</span> grid to cross out digits you've eliminated. Click again to restore.</p>
+
+    <p style="color:var(--dim);font-size:0.65rem;margin-top:16px;">// ESC or click outside to close</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+/* ── AUDIO ─────────────────────────────────── */
+let AC;
+function getAC() {
+  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+
+function playSound(type) {
+  try {
+    const ac = getAC();
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    const t = ac.currentTime;
+
+    if (type === 'blip') {
+      o.type = 'square';
+      o.frequency.setValueAtTime(700, t);
+      o.frequency.exponentialRampToValueAtTime(350, t + 0.05);
+      g.gain.setValueAtTime(0.07, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+      o.start(t); o.stop(t + 0.08);
+    } else if (type === 'blip-hi') {
+      o.type = 'square';
+      o.frequency.setValueAtTime(1200, t);
+      g.gain.setValueAtTime(0.06, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      o.start(t); o.stop(t + 0.06);
+    } else if (type === 'thrum') {
+      o.type = 'sine';
+      o.frequency.setValueAtTime(80, t);
+      o.frequency.exponentialRampToValueAtTime(160, t + 0.4);
+      g.gain.setValueAtTime(0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      o.start(t); o.stop(t + 0.9);
+    } else if (type === 'error') {
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(160, t);
+      o.frequency.exponentialRampToValueAtTime(55, t + 0.22);
+      g.gain.setValueAtTime(0.14, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+      o.start(t); o.stop(t + 0.28);
+    } else if (type === 'scratch') {
+      o.type = 'square';
+      o.frequency.setValueAtTime(300, t);
+      g.gain.setValueAtTime(0.05, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+      o.start(t); o.stop(t + 0.05);
+    } else if (type === 'win') {
+      [330, 415, 523, 659, 880].forEach((freq, i) => {
+        const oo = ac.createOscillator(), gg = ac.createGain();
+        oo.connect(gg); gg.connect(ac.destination);
+        oo.type = 'sine';
+        oo.frequency.setValueAtTime(freq, t + i*0.1);
+        gg.gain.setValueAtTime(0, t + i*0.1);
+        gg.gain.linearRampToValueAtTime(0.15, t + i*0.1 + 0.05);
+        gg.gain.exponentialRampToValueAtTime(0.001, t + i*0.1 + 0.4);
+        oo.start(t + i*0.1); oo.stop(t + i*0.1 + 0.45);
+      });
+    }
+  } catch(e) {}
+}
+
+/* ── STATE ─────────────────────────────────── */
+let secret = [], attempts = 0, active = true;
+let currentVal = '';
+let totalGames = 0;
+
+const WORDS = ['zero','one','two','three','four'];
+
+function genCode() {
+  const first = [1,2,3,4,5,6,7,8,9];
+  shuffle(first);
+  const rest = [0,1,2,3,4,5,6,7,8,9].filter(d => d !== first[0]);
+  shuffle(rest);
+  return [first[0], ...rest.slice(0,3)].map(String);
+}
+function shuffle(arr) {
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+}
+
+/* ── START SCREEN ───────────────────────────── */
+function startGame() {
+  playSound('thrum');
+  const ss = document.getElementById('start-screen');
+  ss.classList.add('hide');
+  setTimeout(() => {
+    ss.style.display = 'none';
+    runBoot();
+  }, 700);
+}
+
+/* ── BOOT SEQUENCE ──────────────────────────── */
+const BOOT_LINES = [
+  'DECRYPTOR OS v2.0.0 — Initializing core modules...',
+  'Loading cipher engine.................. [OK]',
+  'Generating encrypted target code........ [OK]',
+  'Establishing secure session............. [OK]',
+  'Countermeasures armed. Interface loading.',
+];
+
+async function runBoot() {
+  const bs = document.getElementById('boot-screen');
+  bs.classList.remove('hide');
+  const container = document.getElementById('boot-lines');
+  container.innerHTML = '';
+  for (const line of BOOT_LINES) {
+    await new Promise(res => {
+      const el = document.createElement('div');
+      el.className = 'boot-line';
+      el.textContent = line;
+      container.appendChild(el);
+      requestAnimationFrame(() => {
+        el.classList.add('show');
+        playSound('blip');
+        setTimeout(res, 480);
+      });
+    });
+  }
+  await new Promise(res => setTimeout(res, 400));
+  bs.classList.add('hide');
+  const gs = document.getElementById('game-screen');
+  gs.classList.add('active');
+  focusHidden();
+}
+
+/* ── BUILD UI ───────────────────────────────── */
+function buildScratchpad() {
+  const g = document.getElementById('scratch-grid');
+  g.innerHTML = '';
+  for (let i = 0; i <= 9; i++) {
+    const el = document.createElement('div');
+    el.className = 'scratch-n';
+    el.textContent = i;
+    el.id = 'sc-'+i;
+    el.onclick = () => { el.classList.toggle('crossed'); playSound('scratch'); };
+    g.appendChild(el);
+  }
+}
+
+function buildNumpad() {
+  const g = document.getElementById('numpad-grid');
+  g.innerHTML = '';
+  for (let i = 0; i <= 9; i++) {
+    const b = document.createElement('div');
+    b.className = 'np-key';
+    b.textContent = i;
+    b.onclick = () => { typeDigit(String(i)); };
+    g.appendChild(b);
+  }
+  const del = document.createElement('div');
+  del.className = 'np-key np-del';
+  del.innerHTML = '&#9003; DEL';
+  del.onclick = () => deleteDigit();
+  g.appendChild(del);
+}
+
+function resetScratchpad() {
+  document.querySelectorAll('.scratch-n').forEach(el => el.classList.remove('crossed'));
+}
+
+/* ── DIGIT DISPLAY ──────────────────────────── */
+function updateDisplay(val) {
+  for (let i = 0; i < 4; i++) {
+    const slot = document.getElementById('ds'+i);
+    slot.classList.remove('correct-pos','correct-num');
+    if (val[i] !== undefined) {
+      slot.textContent = val[i];
+      slot.classList.remove('empty');
+      slot.classList.toggle('active', i === val.length-1);
+    } else {
+      slot.textContent = '_';
+      slot.classList.add('empty');
+      slot.classList.remove('active');
+      if (i === val.length) slot.classList.add('active');
+    }
+  }
+  document.getElementById('hidden-inp').value = val;
+}
+
+function focusHidden() {
+  const inp = document.getElementById('hidden-inp');
+  inp.focus({ preventScroll: true });
+}
+
+function typeDigit(d) {
+  if (!active || currentVal.length >= 4) return;
+  currentVal += d;
+  updateDisplay(currentVal);
+  playSound('blip-hi');
+}
+
+function deleteDigit() {
+  if (!active) return;
+  currentVal = currentVal.slice(0,-1);
+  updateDisplay(currentVal);
+  playSound('blip');
+}
+
+/* ── INPUT EVENTS ───────────────────────────── */
+document.getElementById('hidden-inp').addEventListener('input', function() {
+  const v = this.value.replace(/\D/g,'').slice(0,4);
+  currentVal = v; this.value = v;
+  updateDisplay(v);
+});
+document.getElementById('hidden-inp').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') submitGuess();
+  if (e.key === 'Backspace') {
+    setTimeout(() => {
+      currentVal = this.value.replace(/\D/g,'').slice(0,4);
+      updateDisplay(currentVal);
+    }, 0);
+  }
+  if (/^[0-9]$/.test(e.key)) playSound('blip-hi');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeManual();
+});
+
+/* ── SUBMIT ─────────────────────────────────── */
+function submitGuess() {
+  if (!active) return;
+  const g = currentVal;
+
+  if (g.length !== 4 || /\D/.test(g)) {
+    playSound('error');
+    alert('ERROR: Sequence requires exactly 4 numeric characters.');
+    focusHidden(); return;
+  }
+  if (new Set(g).size !== 4) {
+    playSound('error');
+    alert('ERROR: Redundant digits detected. Sequence must be unique.');
+    focusHidden(); return;
+  }
+  if (g[0] === '0') {
+    playSound('error');
+    alert('ERROR: Initial digit cannot be zero. Invalid sequence.');
+    focusHidden(); return;
+  }
+
+  attempts++;
+  document.getElementById('atc').textContent = attempts;
+  playSound('thrum');
+
+  const digits = g.split('');
+  let correctNum = 0, correctPos = 0;
+  digits.forEach((d,i) => {
+    if (secret.includes(d)) correctNum++;
+    if (secret[i] === d) correctPos++;
+  });
+
+  const emp = document.getElementById('hist-empty');
+  if (emp) emp.remove();
+
+  // Build guess card
+  const card = document.createElement('div');
+  card.className = 'guess-card';
+  const wN = `${WORDS[correctNum]} ${correctNum===1?'number':'numbers'}`;
+  const wP = `${WORDS[correctPos]} ${correctPos===1?'position':'positions'}`;
+  card.innerHTML = `
+    <div class="gc-head">Attempt #${attempts} &mdash; Guess: ${g}</div>
+    <div class="gc-num">&gt; Correct Number: ${correctNum}</div>
+    <div class="gc-pos">&gt; Position: ${correctPos}</div>
+    <div class="gc-summary">"${wN} and ${wP}"</div>
+  `;
+  document.getElementById('history-log').prepend(card);
+
+  addMiniLine(`${attempts}. ${g} — ${correctNum} number${correctNum===1?'':'s'} ${correctPos} position${correctPos===1?'':'s'}`);
+
+  currentVal = ''; updateDisplay(''); focusHidden();
+
+  if (correctPos === 4) { active = false; triggerVictory(); }
+}
+
+/* ── VICTORY ────────────────────────────────── */
+async function triggerVictory() {
+  const area = document.getElementById('result-area');
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&!><|';
+
+  area.innerHTML = `<div class="result-box win"><h2>PROCESSING…</h2><div id="scr" style="font-family:var(--font-d);font-size:1.3rem;letter-spacing:6px;color:var(--green);padding:8px 0;"></div></div>`;
+
+  let elapsed = 0;
+  const iv = setInterval(() => {
+    playSound('blip-hi');
+    const el = document.getElementById('scr');
+    if (el) el.textContent = Array.from({length:10},()=>CHARS[Math.floor(Math.random()*CHARS.length)]).join('');
+    elapsed += 130;
+    if (elapsed >= 1500) clearInterval(iv);
+  }, 130);
+
+  await sleep(1600);
+  playSound('win');
+
+  area.innerHTML = `
+    <div class="result-box win">
+      <h2>ACCESS GRANTED</h2>
+      <p>Decrypted in <strong style="color:var(--green);font-size:1.1rem">${attempts}</strong> attempt${attempts===1?'':'s'}.</p>
+      <div class="code-big">${secret.join(' ')}</div>
+      <p style="color:var(--dim);font-size:0.72rem;margin-top:6px;">// New target spawning in 3s…</p>
+    </div>`;
+
+  logSession(`Game ${++totalGames}: Won in ${attempts} attempt${attempts===1?'':'s'} (Code: ${secret.join('')})`, 'win');
+
+  setTimeout(() => { resetForNewGame(area); }, 3000);
+}
+
+/* ── TERMINATE ──────────────────────────────── */
+function terminate() {
+  if (!active) return;
+  if (attempts === 0) {
+    playSound('error');
+    alert('ERROR: At least one injection attempt required before termination.');
+    focusHidden();
+    return;
+  }
+  playSound('error');
+  active = false;
+
+  const area = document.getElementById('result-area');
+  area.innerHTML = `
+    <div class="result-box lose">
+      <h2>CONNECTION TERMINATED</h2>
+      <p>Target code was:</p>
+      <div class="code-big">${secret.join(' ')}</div>
+      <p style="color:var(--dim);font-size:0.72rem;margin-top:6px;">// New target spawning in 3s…</p>
+    </div>`;
+
+  logSession(`Game ${++totalGames}: Gave up (Code: ${secret.join('')})`, 'lose');
+  currentVal = ''; updateDisplay(''); focusHidden();
+  setTimeout(() => { resetForNewGame(area); }, 3000);
+}
+
+function resetForNewGame(area) {
+  area.innerHTML = '';
+  hideMiniHist();
+  initGame();
+}
+
+/* ── MINI HISTORY ───────────────────────────── */
+function addMiniLine(text) {
+  const box = document.getElementById('mini-hist');
+  box.style.display = 'block';
+  const el = document.createElement('div');
+  el.className = 'mini-line';
+  el.textContent = text;
+  document.getElementById('mini-items').appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+function hideMiniHist() {
+  document.getElementById('mini-hist').style.display = 'none';
+  document.getElementById('mini-items').innerHTML = '';
+}
+
+/* ── SESSION LOG ────────────────────────────── */
+function logSession(text, type) {
+  const list = document.getElementById('log-list');
+  const emp = list.querySelector('.log-empty-msg');
+  if (emp) emp.remove();
+  const el = document.createElement('div');
+  el.className = type === 'win' ? 'log-win' : 'log-lose';
+  el.textContent = '> ' + text;
+  list.appendChild(el);
+  document.getElementById('log-details').open = true;
+}
+
+/* ── MANUAL MODAL ───────────────────────────── */
+function openManual() {
+  playSound('blip');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeManual() {
+  playSound('blip');
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function handleOverlay(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeManual();
+}
+
+/* ── INIT GAME ──────────────────────────────── */
+function initGame() {
+  secret = genCode();
+  attempts = 0; active = true; currentVal = '';
+  document.getElementById('atc').textContent = '0';
+  document.getElementById('history-log').innerHTML = '<div class="hist-empty" id="hist-empty">&gt; Awaiting first sequence injection…</div>';
+  resetScratchpad();
+  updateDisplay('');
+  focusHidden();
+}
+
+/* ── UTIL ───────────────────────────────────── */
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ── BOOT ───────────────────────────────────── */
+buildScratchpad();
+buildNumpad();
+initGame();
+</script>
+</body>
+</html>
