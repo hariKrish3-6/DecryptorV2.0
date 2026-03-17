@@ -1,25 +1,55 @@
-DECRYPTOR — The Ultimate Logic Challenge (v2.0)
-DECRYPTOR is a high-stakes, logic-based puzzle game inspired by classic "Bulls and Cows" and Mastermind mechanics, wrapped in a sleek, retro-cyberpunk terminal interface.
-Your mission: Interface with the encrypted system and crack a 4-digit security code using pure deduction.
-The system generates a secret 4-digit code with the following constraints:
-Unique Digits: No number appears more than once.
-No Leading Zero: The first digit will never be 0.
-Limited Intel: You must interpret system feedback to narrow down the possibilities.
-Feedback System
-After every "Injection" (guess), the terminal returns two critical data points:
-Correct Number: How many digits in your guess exist anywhere within the secret code.
-Position: How many of those digits are in the exact correct slot.
-Example:
-Secret Code: 5 2 3 4
-Your Guess: 4 2 7 8
-System Feedback: Correct Number: 2 (4 and 2), Position: 1 (only 2 is correctly placed).
-Features in v2.0
-Terminal Interface: Immersive CRT scanline effects and a "Share Tech Mono" aesthetic.
-Boot Sequence: Animated system initialization sequence upon startup.
-Scratchpad: An interactive "Numbers for Reference" grid to help you manually eliminate digits.
-Audio Feedback: Synthetic blips, thrums, and "access granted" melodies using the Web Audio API.
-Attempt Log: A persistent history of your guesses to track your deductive path.
-Mobile Optimized: Responsive design with a hidden input trigger for virtual keyboards.
-Technical Stack
-Language: Vanilla JavaScript (ES6+)
-Styling: CSS3 Custom Properties (Variables) & Keyframe Animations
+DECRYPTOR — The Ultimate Logic Challenge (v2.1)
+DECRYPTOR v2.1 is a major evolution of the high-stakes terminal puzzle. This version moves beyond the legacy input system to provide a rock-solid, tactile experience with enhanced decryption tools.
+
+Status: Version 2.1 — Stable Release
+
+Mission: Crack the 4-digit encrypted sequence using advanced logical deduction.
+
+✨ New in Version 2.1 (The "Engine Overhaul")
+The v2.1 update focuses on Input Stability and New Logic Tools:
+
+🛡️ Robust Input Architecture: Removed the hidden input dependency. Version 2.1 uses a direct keydown listener and a reactive on-screen Numpad, eliminating focus-loss bugs on mobile and desktop.
+
+📡 Scan Hint System: One free Scan_Hint per session. It intercepts the code to reveal the exact value and position of a random digit.
+
+📂 Session Archive 2.0: A persistent log that now tracks your full guess history for every game in the session, with a new "Clear Archive" function.
+
+↩️ Navigation Support: Added a "Go Back" feature to return to the system initialization screen without losing your session state.
+
+⌨️ Modal Intelligence: Keyboard inputs are now automatically ignored while the [Read_Manual] overlay is active.
+
+🎮 Core Gameplay Constraints
+The system generates a secret 4-digit code following strict security protocols:
+
+Unique Digits: Every digit in the sequence is distinct.
+
+Zero-Guard: The first digit is never 0.
+
+Feedback Logic:
+
+Correct Number: Total digits found in the secret code.
+
+Position: Total digits placed in the exact correct slot.
+
+🛠️ Tactical Interface
+Numbers for Reference (Scratchpad): Tap digits in the grid to visually eliminate them from your logic path.
+
+Live Feed (Mini-History): A floating real-time log of your most recent injections.
+
+Manual [Read_Manual]: Detailed documentation on decryption examples and rules.
+
+Audio Synthesis: Native Web Audio API generating square and sine wave feedback for every system action.
+
+Open in any modern browser (Chrome, Safari, Firefox, or Edge).
+
+Execute Initialize_Session.
+
+💻 Technical Specification
+Frontend: Vanilla HTML5 / CSS3 (Grid & Flexbox)
+
+Logic: Native JavaScript (Direct Event Listeners / No Frameworks)
+
+📜 Version History
+v1.0: Initial Mastermind concept.
+v2.0: Cyberpunk UI, Boot Sequence, and Audio.
+v2.1: (Current) Scan Hint system, Numpad rewrite, and Archive management.
